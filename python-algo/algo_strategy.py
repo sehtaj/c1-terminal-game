@@ -57,7 +57,7 @@ class AlgoStrategy(gamelib.AlgoCore):
         if (int(game_state.turn_number) == 0):
             gamelib.debug_write(" ")
             gamelib.debug_write("game_start")
-            gamelib.debug_write(game_state.config["unitInformation"][2]["display"])
+            gamelib.debug_write(game_state.config["unitInformation"][0])
             gamelib.debug_write("game)end")
             gamelib.debug_write(" ")
 
