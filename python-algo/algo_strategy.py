@@ -54,12 +54,12 @@ class AlgoStrategy(gamelib.AlgoCore):
         """
         game_state = gamelib.GameState(self.config, turn_state)
 
-        if (int(game_state.turn_number) == 0):
-            gamelib.debug_write(" ")
-            gamelib.debug_write("game_start")
-            gamelib.debug_write(game_state.config["unitInformation"][0])
-            gamelib.debug_write("game)end")
-            gamelib.debug_write(" ")
+        # if (int(game_state.turn_number) == 0):
+        #     gamelib.debug_write(" ")
+        #     gamelib.debug_write("game_start")
+        #     gamelib.debug_write(game_state.config["unitInformation"][0])
+        #     gamelib.debug_write("game)end")
+        #     gamelib.debug_write(" ")
 
         gamelib.debug_write('Performing turn {} of your custom algo strategy'.format(game_state.turn_number))
         game_state.suppress_warnings(True)  #Comment or remove this line to enable warnings.
@@ -118,20 +118,21 @@ class AlgoStrategy(gamelib.AlgoCore):
         # More community tools available at: https://terminal.c1games.com/rules#Download
 
         # Place turrets that attack enemy units
-        turret_locations = [[4, 11], [10, 11], [16, 11], [22, 11]]
+        turret_locations = [[3, 12], [9, 12], [18, 12], [24, 12]]
         # attempt_spawn will try to spawn units if we have resources, and will check if a blocking unit is already there
         game_state.attempt_spawn(TURRET, turret_locations)
         
         # Place walls in front of turrets to soak up damage for them
-        wall_locations = [[0,13], [1,12], [27,13], [26,12], [4,12], [10,12], [16,12], [22, 12]]
+        wall_locations = [[2, 13], [3, 13], [9, 13], [10, 13], [17, 13], [18, 13], [24, 13], [25, 13]]
         game_state.attempt_spawn(WALL, wall_locations)
-        # upgrade walls so they soak more damage
-        game_state.attempt_upgrade(wall_locations)
 
-
-        if (SP > 15):
-            upgrade_priority = [[10, 11], [16, 11]]
+        if game_state.get_resource(SP) >= 10:
+            upgrade_priority = [[3, 13], [9, 13], [18, 13], [24, 13]]  # Walls in front of turrets
             game_state.attempt_upgrade(upgrade_priority)
+
+        if game_state.get_resource(SP) >= 16:
+            turret_upgrade_priority = [[9, 12], [18, 12]]
+            game_state.attempt_upgrade(turret_upgrade_priority)
          # Upgrade only if extra resources are available
         
     def build_reactive_defense(self, game_state):
@@ -140,10 +141,30 @@ class AlgoStrategy(gamelib.AlgoCore):
         We can track where the opponent scored by looking at events in action frames 
         as shown in the on_action_frame function
         """
+        attack_frequencies = {}
+    
         for location in self.scored_on_locations:
-            # Build turret one space above so that it doesn't block our own edge spawn locations
-            build_location = [location[0], location[1]+1]
-            game_state.attempt_spawn(TURRET, build_location)
+            x, y = location
+            attack_frequencies[x] = attack_frequencies.get(x, 0) + 1  # Count attacks per column
+
+        # Sort columns by highest attack frequency (most dangerous lanes first)
+        attack_priority = sorted(attack_frequencies.keys(), key=lambda x: -attack_frequencies[x])
+
+        # **Deploy defenses in top 3 high-risk lanes**
+        for x in attack_priority[:3]:  # Focus on the most attacked columns
+            wall_location = [x, 13]
+            turret_location = [x, 12]
+
+            # Upgrade existing defenses before placing new ones
+            if game_state.contains_stationary_unit(turret_location):
+                game_state.attempt_upgrade(turret_location)
+            else:
+                game_state.attempt_spawn(TURRET, turret_location)
+
+            if game_state.contains_stationary_unit(wall_location):
+                game_state.attempt_upgrade(wall_location)
+            else:
+                game_state.attempt_spawn(WALL, wall_location)
 
     def stall_with_interceptors(self, game_state):
         """

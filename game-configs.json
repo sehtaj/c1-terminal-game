@@ -43,20 +43,22 @@
       "turnsRequiredToRemove": 1,
       "generatesResource1": 1,
       "upgrade": {
-        "generatesResource2": 2
+        "generatesResource2": 2,
+        "shieldPerUnit": 6.0,
+        "shieldRange": 10.0
       }
     },
     {
       "icon": "S3_destructor",
       "iconxScale": 0.5,
       "iconyScale": 0.5,
-      "attackDamageWalker":5.0,
+      "attackDamageWalker":8.0,
       "cost1":4.0,
       "getHitRadius":0.01,
       "display":"destructor",
       "attackRange":2.5,
       "shorthand":"DF",
-      "startHealth":70.0,
+      "startHealth":75.0,
       "unitCategory": 0,
       "refundPercentage": 0.75,
       "turnsRequiredToRemove": 1,
@@ -162,7 +164,7 @@
     "bitRampBitCapGrowthRate":5.0,
     "roundStartBitRamp":10,
     "bitGrowthRate":1.0,
-    "startingHP":40.0,
+    "startingHP":30.0,
     "maxBits":150.0,
     "bitsPerRound":5.0,
     "coresPerRound":5.0,
