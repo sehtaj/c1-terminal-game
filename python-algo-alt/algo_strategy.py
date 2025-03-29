@@ -81,9 +81,25 @@ class AlgoStrategy(gamelib.AlgoCore):
         For offense we will use long range demolishers if they place stationary units near the enemy's front.
         If there are no stationary units to attack in the front, we will send Scouts to try and score quickly.
         """
-        game_state.attempt_spawn(WALL, [[0, 13], [1, 13], [2, 13], [25, 13], [26, 13], [27, 13]])
-        game_state.attempt_spawn(TURRET, [[3, 12], [8, 12], [13, 12], [18, 12], [23, 12]])
-        game_state.attempt_spawn(SUPPORT, [[12, 1], [15, 1], [12, 2], [15, 2], [12, 3], [15, 3], [12, 4], [15, 4], [12, 5], [15, 5]])
+        first = [[0, 13], [1, 13], [26, 13], [27, 13]]
+        # second = [[3, 12], [8, 12], [13, 12], [18, 12], [24, 12]]
+        second = [[2, 12], [3, 12], [24, 12], [25, 12]]
+        third = [[12, 7], [15, 7], [12, 6], [15, 6]]
+        fourth = [[2, 13], [25, 13], [3, 13], [24, 13], [4, 13], [23, 13]]
+        # fifth = [[3, 11], [8, 11], [13, 11], [18, 11], [24, 11]]
+        fifth = [[2, 11], [3, 11], [24, 11], [25, 11]]
+        sixth = [[12, 5], [15, 5], [12, 4], [15, 4], [12, 3], [15, 3], [12, 2], [15, 2], [12, 1], [15, 1]]
+
+        game_state.attempt_spawn(WALL, first)
+        game_state.attempt_spawn(TURRET, second)
+        game_state.attempt_spawn(SUPPORT, third)
+        self.build_reactive_defense(game_state)
+        game_state.attempt_upgrade(second + third + fifth + sixth + first + fourth)
+        game_state.attempt_spawn(WALL, fourth)
+        game_state.attempt_spawn(TURRET, fifth)
+        game_state.attempt_spawn(SUPPORT, sixth)
+        game_state.attempt_upgrade(second + third + fifth + sixth + first + fourth)
+
 
         
 
@@ -131,7 +147,7 @@ class AlgoStrategy(gamelib.AlgoCore):
                         i %= 4
                 elif game_state.turn_number % 2 == 0:
                     # To simplify we will just check sending them from back left and right
-                    scout_spawn_location_options = [[13, 0], [14, 0]]
+                    scout_spawn_location_options = [[13, 0], [14, 0], [7, 6], [20, 6], [3, 10], [24, 10]]
                     best_location = self.least_damage_spawn_location(game_state, scout_spawn_location_options)
                     game_state.attempt_spawn(SCOUT, best_location, 1000)
 
