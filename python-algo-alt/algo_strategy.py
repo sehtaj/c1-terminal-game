@@ -81,10 +81,18 @@ class AlgoStrategy(gamelib.AlgoCore):
         For offense we will use long range demolishers if they place stationary units near the enemy's front.
         If there are no stationary units to attack in the front, we will send Scouts to try and score quickly.
         """
-        # First, place basic defenses
-        self.build_defences(game_state)
-        # Now build reactive defenses based on where the enemy scored
-        self.build_reactive_defense(game_state)
+        game_state.attempt_spawn(WALL, [[0, 13], [1, 13], [2, 13], [25, 13], [26, 13], [27, 13]])
+        game_state.attempt_spawn(TURRET, [[3, 12], [8, 12], [13, 12], [18, 12], [23, 12]])
+        game_state.attempt_spawn(SUPPORT, [[12, 1], [15, 1], [12, 2], [15, 2], [12, 3], [15, 3], [12, 4], [15, 4], [12, 5], [15, 5]])
+
+        
+
+
+
+        # # First, place basic defenses
+        # self.build_defences(game_state)
+        # # Now build reactive defenses based on where the enemy scored
+        # self.build_reactive_defense(game_state)
 
         # If the turn is less than 5, stall with interceptors and wait to see enemy's base
         if game_state.turn_number < 0:
@@ -101,7 +109,7 @@ class AlgoStrategy(gamelib.AlgoCore):
 
                 # Only spawn Scouts every other turn
                 # Sending more at once is better since attacks can only hit a single scout at a time
-                if game_state.turn_number % 16 == 15:
+                if game_state.turn_number % 16 == 12:
                     # every four turns try sending demolishers protected by interceptors
                     demolisher_spawn_location_options = [[13, 0], [14, 0]]
                     interceptor_spawn_location_options = [[13, 9], [14, 9]]
@@ -121,15 +129,15 @@ class AlgoStrategy(gamelib.AlgoCore):
                                 break
                         i += 1
                         i %= 4
-                elif game_state.turn_number % 3 == 0:
+                elif game_state.turn_number % 2 == 0:
                     # To simplify we will just check sending them from back left and right
                     scout_spawn_location_options = [[13, 0], [14, 0]]
                     best_location = self.least_damage_spawn_location(game_state, scout_spawn_location_options)
                     game_state.attempt_spawn(SCOUT, best_location, 1000)
 
-                # Lastly, if we have spare SP, let's build some supports
-                support_locations = [[13, 2], [14, 2], [13, 3], [14, 3]]
-                game_state.attempt_spawn(SUPPORT, support_locations)
+        #         # Lastly, if we have spare SP, let's build some supports
+        #         support_locations = [[13, 2], [14, 2], [13, 3], [14, 3]]
+        #         game_state.attempt_spawn(SUPPORT, support_locations)
 
     def build_defences(self, game_state):
         """
