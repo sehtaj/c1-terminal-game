@@ -86,8 +86,8 @@ class AlgoStrategy(gamelib.AlgoCore):
         # Now build reactive defenses based on where the enemy scored
         self.build_reactive_defense(game_state)
 
-        # If the turn is less than 5, stall with interceptors and wait to see enemy's base
-        if game_state.turn_number < 5:
+        # If the turn is less than 3, stall with interceptors and wait to see enemy's base
+        if game_state.turn_number < 3:
             self.stall_with_interceptors(game_state)
         else:
             # Now let's analyze the enemy base to see where their defenses are concentrated.
@@ -99,7 +99,27 @@ class AlgoStrategy(gamelib.AlgoCore):
 
                 # Only spawn Scouts every other turn
                 # Sending more at once is better since attacks can only hit a single scout at a time
-                if game_state.turn_number % 2 == 1:
+                if game_state.turn_number % 4 == 1:
+                    # every four turns try sending demolishers protected by interceptors
+                    demolisher_spawn_location_options = [[13, 0], [14, 0]]
+                    interceptor_spawn_location_options = [[13, 9], [14, 9]]
+                    i = 0
+                    while True:
+                        if i == 0:
+                            if game_state.attempt_spawn(DEMOLISHER, demolisher_spawn_location_options[0]) != 1:
+                                break
+                        elif i == 1:
+                            if game_state.attempt_spawn(INTERCEPTOR, interceptor_spawn_location_options[0]) != 1:
+                                break
+                        elif i == 2:
+                            if game_state.attempt_spawn(DEMOLISHER, demolisher_spawn_location_options[1]) != 1:
+                                break
+                        elif i == 3:
+                            if game_state.attempt_spawn(INTERCEPTOR, interceptor_spawn_location_options[1]) != 1:
+                                break
+                    i += 1
+                    i %= 4
+                elif game_state.turn_number % 2 == 1:
                     # To simplify we will just check sending them from back left and right
                     scout_spawn_location_options = [[13, 0], [14, 0]]
                     best_location = self.least_damage_spawn_location(game_state, scout_spawn_location_options)
