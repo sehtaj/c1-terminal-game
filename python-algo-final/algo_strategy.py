@@ -5,6 +5,7 @@ import warnings
 from sys import maxsize
 import json
 
+#SPAWN TURRETS BEFORE UPGRADING
 
 """ 
 Most of the algo code you write will be in this file unless you create new
@@ -87,106 +88,181 @@ class AlgoStrategy(gamelib.AlgoCore):
         self.build_reactive_defense(game_state)
 
         # If the turn is less than 5, stall with interceptors and wait to see enemy's base
-        if game_state.turn_number < 0:
-            self.stall_with_interceptors(game_state)
-        else:
-            # Now let's analyze the enemy base to see where their defenses are concentrated.
-            # If they have many units in the front we can build a line for our demolishers to attack them at long range.
-            # if self.detect_enemy_unit(game_state, unit_type=None, valid_x=None, valid_y=[14, 15]) > 10:
-                # self.demolisher_line_strategy(game_state)
-            if False:
-                pass
-            else:
-                # They don't have many units in the front so lets figure out their least defended area and send Scouts there.
+        # if game_state.turn_number < 0:
+        #     self.stall_with_interceptors(game_state)
+        # else:
+        #     # Now let's analyze the enemy base to see where their defenses are concentrated.
+        #     # If they have many units in the front we can build a line for our demolishers to attack them at long range.
+        #     # if self.detect_enemy_unit(game_state, unit_type=None, valid_x=None, valid_y=[14, 15]) > 10:
+        #         # self.demolisher_line_strategy(game_state)
+        #     if False:
+        #         pass
+        #     else:
+        #         # They don't have many units in the front so lets figure out their least defended area and send Scouts there.
 
-                # Only spawn Scouts every other turn
-                # Sending more at once is better since attacks can only hit a single scout at a time
-                if game_state.turn_number % 16 == 15:
-                    # every four turns try sending demolishers protected by interceptors
-                    demolisher_spawn_location_options = [[13, 0], [14, 0]]
-                    interceptor_spawn_location_options = [[13, 9], [14, 9]]
-                    i = 0
-                    while True:
-                        if i == 0:
-                            if game_state.attempt_spawn(DEMOLISHER, demolisher_spawn_location_options[0]) != 1:
-                                break
-                        elif i == 1:
-                            if game_state.attempt_spawn(INTERCEPTOR, interceptor_spawn_location_options[0]) != 1:
-                                break
-                        elif i == 2:
-                            if game_state.attempt_spawn(DEMOLISHER, demolisher_spawn_location_options[1]) != 1:
-                                break
-                        elif i == 3:
-                            if game_state.attempt_spawn(INTERCEPTOR, interceptor_spawn_location_options[1]) != 1:
-                                break
-                        i += 1
-                        i %= 4
-                elif game_state.turn_number % 3 == 0:
-                    # To simplify we will just check sending them from back left and right
-                    scout_spawn_location_options = [[13, 0], [14, 0]]
-                    best_location = self.least_damage_spawn_location(game_state, scout_spawn_location_options)
-                    game_state.attempt_spawn(SCOUT, best_location, 1000)
+        #         # Only spawn Scouts every other turn
+        #         # Sending more at once is better since attacks can only hit a single scout at a time
+        #         if game_state.turn_number % 16 == 15:
+        #             # every four turns try sending demolishers protected by interceptors
+        #             demolisher_spawn_location_options = [[13, 0], [14, 0]]
+        #             interceptor_spawn_location_options = [[13, 9], [14, 9]]
+        #             i = 0
+        #             while True:
+        #                 if i == 0:
+        #                     if game_state.attempt_spawn(DEMOLISHER, demolisher_spawn_location_options[0]) != 1:
+        #                         break
+        #                 elif i == 1:
+        #                     if game_state.attempt_spawn(INTERCEPTOR, interceptor_spawn_location_options[0]) != 1:
+        #                         break
+        #                 elif i == 2:
+        #                     if game_state.attempt_spawn(DEMOLISHER, demolisher_spawn_location_options[1]) != 1:
+        #                         break
+        #                 elif i == 3:
+        #                     if game_state.attempt_spawn(INTERCEPTOR, interceptor_spawn_location_options[1]) != 1:
+        #                         break
+        #                 i += 1
+        #                 i %= 4
+                        
+        if game_state.turn_number == 0:
+            # To simplify we will just check sending them from back left and right
+            scout_spawn_location_options = [[13, 0], [14, 0]]
+            best_location = self.least_damage_spawn_location(game_state, scout_spawn_location_options)
+            game_state.attempt_spawn(SCOUT, best_location, 1000)
 
-                # Lastly, if we have spare SP, let's build some supports
-                support_locations = [[13, 2], [14, 2], [13, 3], [14, 3]]
-                game_state.attempt_spawn(SUPPORT, support_locations)
+        elif game_state.turn_number % 1 == 0:
+            scout_spawn_location_options = [[5, 8], [6, 7], [7, 6], [8, 5], [9, 4], [10, 3], [11, 2], [12, 1], [13, 0], [14, 0], [15, 1], [16, 2], [17, 3], [18, 4], [19, 5], [20, 6], [21, 7], [22, 8]]
+
+            best_location = self.least_damage_spawn_location(game_state, scout_spawn_location_options)
+            game_state.attempt_spawn(SCOUT, best_location, 1000)
+
+        # # Lastly, if we have spare SP, let's build some supports
+        # support_locations = [[13, 2], [14, 2], [13, 3], [14, 3]]
+        # game_state.attempt_spawn(SUPPORT, support_locations)
 
     def build_defences(self, game_state):
         """
         Build basic defenses using hardcoded locations.
-        Remember to defend corners and avoid placing units in the front where enemy demolishers can attack them.
+        Dynamically upgrades turrets if SP is available.
         """
-        # Useful tool for setting up your base locations: https://www.kevinbai.design/terminal-map-maker
-        # More community tools available at: https://terminal.c1games.com/rules#Download
-
-        # Place turrets that attack enemy units
-        turret_locations = [[3, 12], [9, 12], [18, 12], [24, 12]]
-        # attempt_spawn will try to spawn units if we have resources, and will check if a blocking unit is already there
+        turret_locations = [[3, 12], [9, 12], [18, 12], [24, 12], [13, 9], [14, 9]]
         game_state.attempt_spawn(TURRET, turret_locations)
-        
-        # Place walls in front of turrets to soak up damage for them
-        wall_locations = [[2, 13], [3, 13], [9, 13], [10, 13], [17, 13], [18, 13], [24, 13], [25, 13]]
-        game_state.attempt_spawn(WALL, wall_locations)
 
+        # Place supports and upgrade them on turn 0
+        if game_state.turn_number == 0:
+            support_locations = [[13, 8], [14, 8], [13, 7], [14, 7]]
+            game_state.attempt_spawn(SUPPORT, support_locations)
+            game_state.attempt_upgrade(support_locations)
+
+        # If we have enough SP, upgrade key turrets
         if game_state.get_resource(SP) >= 10:
-            upgrade_priority = [[3, 13], [9, 13], [18, 13], [24, 13]]  # Walls in front of turrets
-            game_state.attempt_upgrade(upgrade_priority)
-
-        if game_state.get_resource(SP) >= 16:
-            turret_upgrade_priority = [[9, 12], [18, 12]]
+            turret_upgrade_priority = [[3, 12], [24, 12], [9, 12], [18,12]]
             game_state.attempt_upgrade(turret_upgrade_priority)
-         # Upgrade only if extra resources are available
+
+        # Place supports and upgrade them on turn 0
         
     def build_reactive_defense(self, game_state):
         """
-        This function builds reactive defenses based on where the enemy scored on us from.
-        We can track where the opponent scored by looking at events in action frames 
-        as shown in the on_action_frame function
+        Reacts to enemy scoring:
+        1. Places turrets at corners if the enemy scored there.
+        2. If all defenses are upgraded, places extra turrets and supports in the center.
         """
-        attack_frequencies = {}
-    
+
+        available_sp = game_state.get_resource(SP)
+
+        # **1. Define key defensive positions**
+        corner_defenses = {0: [0, 13], 27: [27, 13]}  # Left & right corners
+        center_turret_locations = [[12, 10], [15, 10], [13, 9], [14, 9]]  # Additional turrets
+        additional_supports = [[12, 8], [15, 8], [13, 7], [14, 7]]  # Extra support structures
+
+        # **5. After turn 3, place supports and upgrade them**
+        if game_state.turn_number == 3:
+            for location in self.scored_on_locations:
+                if available_sp < 4:
+                    break  # Stop if not enough SP
+
+                existing_units = game_state.game_map[location]
+                support_exists = any(unit.unit_type == SUPPORT for unit in existing_units)
+
+                if not support_exists:
+                    game_state.attempt_spawn(SUPPORT, location)
+                    available_sp -= 2
+
+                # Upgrade the support if it exists and there's enough SP
+                if available_sp >= 2:
+                    game_state.attempt_upgrade(location)
+                    available_sp -= 2
+
+        turrets_built = []  # Store locations of newly built turrets
         for location in self.scored_on_locations:
-            x, y = location
-            attack_frequencies[x] = attack_frequencies.get(x, 0) + 1  # Count attacks per column
+            if available_sp < 4:
+                break  # Stop if not enough SP
 
-        # Sort columns by highest attack frequency (most dangerous lanes first)
-        attack_priority = sorted(attack_frequencies.keys(), key=lambda x: -attack_frequencies[x])
+            if not game_state.contains_stationary_unit(location):
+                game_state.attempt_spawn(TURRET, location)
+                available_sp -= 4
+                turrets_built.append(location)  # Store for later upgrading
 
-        # **Deploy defenses in top 3 high-risk lanes**
-        for x in attack_priority[:3]:  # Focus on the most attacked columns
-            wall_location = [x, 13]
-            turret_location = [x, 12]
+        # **2. Rebuild supports if they were destroyed**
+        for location in self.scored_on_locations:
+            if available_sp < 2:
+                break  # Stop if not enough SP
 
-            # Upgrade existing defenses before placing new ones
-            if game_state.contains_stationary_unit(turret_location):
-                game_state.attempt_upgrade(turret_location)
-            else:
-                game_state.attempt_spawn(TURRET, turret_location)
+            existing_units = game_state.game_map[location]
+            support_exists = any(unit.unit_type == SUPPORT for unit in existing_units)
 
-            if game_state.contains_stationary_unit(wall_location):
-                game_state.attempt_upgrade(wall_location)
-            else:
-                game_state.attempt_spawn(WALL, wall_location)
+            if not support_exists:
+                game_state.attempt_spawn(SUPPORT, location)
+                available_sp -= 2
+
+        # **3. Rebuild turrets if they were destroyed**
+        for location in self.scored_on_locations:
+            if available_sp < 4:
+                break  # Stop if not enough SP
+
+            existing_units = game_state.game_map[location]
+            turret_exists = any(unit.unit_type == TURRET for unit in existing_units)
+
+            if not turret_exists:
+                game_state.attempt_spawn(TURRET, location)
+                available_sp -= 4
+                turrets_built.append(location)  # Store for upgrading
+
+        # **4. Upgrade turrets that were built in step 1**
+        for location in turrets_built:
+            if available_sp < 6:
+                break  # Stop if not enough SP
+
+            game_state.attempt_upgrade(location)
+            available_sp -= 6
+
+            # **3. Check if all existing defenses are upgraded**
+            all_upgraded = True
+            for location in game_state.game_map:
+                for unit in game_state.game_map[location]:
+                    if unit.unit_type in [TURRET, SUPPORT] and not unit.upgraded:
+                        all_upgraded = False
+                        break
+                if not all_upgraded:
+                    break
+
+        # **4. If all defenses are upgraded, place extra turrets**
+        if available_sp >= 8 and all_upgraded:
+            for turret_location in center_turret_locations:
+                if available_sp < 4:
+                    break
+                if not game_state.contains_stationary_unit(turret_location):
+                    game_state.attempt_spawn(TURRET, turret_location)
+                    available_sp -= 4
+
+        # **5. If more SP is left, place and upgrade additional supports**
+        if available_sp >= 8 and all_upgraded:
+            for support_location in additional_supports:
+                if available_sp < 4:
+                    break
+                if not game_state.contains_stationary_unit(support_location):
+                    game_state.attempt_spawn(SUPPORT, support_location)
+                    game_state.attempt_upgrade(support_location)
+                    available_sp -= 4
 
     def stall_with_interceptors(self, game_state):
         """
