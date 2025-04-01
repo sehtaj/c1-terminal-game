@@ -93,8 +93,34 @@ This module contains the `GameUnit` class which holds information about a Unit.
 
 Helper functions and values that do not yet have a better place to live.
 
-## Strategy Overview
 
 The starter strategy is designed to highlight a few common `GameMap` functions
 and give the user a functioning example to work with. It's gameplan is to
 draw the C1 logo, place turrets in its corners, and randomly spawn units.
+
+Terminal Game Strategy
+
+## Strategy Overview
+
+This is a custom algorithm for Terminal, a strategy-based game where players build defenses and deploy attacking units. This strategy focuses on a wall-less defensive approach, relying on turrets, supports, and interceptors for stalling while maintaining an aggressive Scout-only attack strategy.
+
+Strategy Breakdown
+
+Defense
+	•	No Walls: The strategy avoids using walls and instead relies on turrets and supports for protection.
+	•	Reactive Turret Placement: A turret is immediately placed at any location where the opponent scores to reinforce defenses.
+	•	Dynamic SP Usage: Available Structure Points (SP) are used dynamically, prioritizing placing turrets before upgrading them.
+	•	Support Placement: Early supports are placed to boost turret efficiency and help defending interceptors.
+
+Offense
+	•	Scout-Only Attacks: Scouts are deployed every turn to maintain constant offensive pressure.
+	•	Adaptive Spawn Locations: Scouts are sent through the least defended enemy path using a damage estimation function.
+
+Other Features
+	•	Interceptor Stalling: If needed, interceptors are deployed to disrupt enemy attacks.
+	•	No Fixed Attack Patterns: The strategy adapts attack locations based on enemy defenses.
+
+File Structure
+	•	algo_strategy.py – Main algorithm file containing the custom game logic.
+	•	README.md – This documentation file.
+	•	Other default files from the C1GamesStarterKit are also included in the repository.
